@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM4Sec - 安全工具开发者</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #111111;
+    --bg-card: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --text-accent: #00ff88;
+    --accent-primary: #00ff88;
+    --accent-secondary: #0066cc;
+    --border-color: #333333;
+    --gradient-1: linear-gradient(135deg, #00ff88 0%, #0066cc 100%);
+    --gradient-2: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Header */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.lang-switcher {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.lang-btn {
+    padding: 0.5rem 0.8rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.lang-btn.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.lang-btn:hover:not(.active) {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+
+.nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.nav a:hover {
+    color: var(--text-primary);
+}
+
+.nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    transition: width 0.3s ease;
+}
+
+.nav a:hover::after {
+    width: 100%;
+}
+
+/* Hero Section */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 102, 204, 0.1) 0%, transparent 50%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.hero-content {
+    max-width: 800px;
+    padding: 0 2rem;
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 50px;
+    color: var(--accent-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.hero-gradient-text {
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--gradient-1);
+    color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-secondary);
+    border-color: var(--text-secondary);
+}
+
+/* Projects Section */
+.projects {
+    padding: 2rem 0 8rem 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 3rem;
+}
+
+.project-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 3rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.project-card:hover::before {
+    opacity: 0.05;
+}
+
+.project-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-5px);
+}
+
+.project-content {
+    position: relative;
+    z-index: 1;
+}
+
+.project-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.project-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--gradient-1);
+}
+
+.project-icon.security {
+    background: var(--gradient-1);
+}
+
+.project-icon.extension {
+    background: var(--gradient-2);
+}
+
+.project-icon.blockchain {
+    background: var(--gradient-2);
+    box-shadow: 0 8px 25px rgba(255, 0, 110, 0.3);
+}
+
+.coming-soon {
+    position: relative;
+}
+
+.coming-soon::after {
+    content: attr(data-status);
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, #ff9500, #ff6b35);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    z-index: 5;
+    box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+    pointer-events: none;
+    display: inline-block;
+}
+
+.coming-soon[data-status="开发中"]::after {
+    content: "开发中";
+}
+
+.coming-soon[data-status="In Development"]::after {
+    content: "In Development";
+}
+
+.project-meta {
+    flex: 1;
+}
+
+.project-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.project-type {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.project-description {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.project-features {
+    margin-bottom: 2rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.feature-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--bg-primary);
+}
+
+.project-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Footer */
+.footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border-color: var(--accent-primary);
+}
+
+.footer-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+        @media (max-width: 1200px) {
+    .projects-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        padding: 1rem;
+    }
+
+    .header-right {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .hero-content {
+        padding: 0 1rem;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .projects {
+        padding: 4rem 1rem;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .project-card {
+        padding: 2rem;
+        max-width: 100%;
+    }
+
+    .project-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .project-links {
+        flex-direction: column;
+    }
+
+    .social-links {
+        gap: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+/* Scroll animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.6s ease;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+</head>
+<body>
+<header class="header">
+<div class="header-content">
+    <a href="https://bradmoonuestc.github.io/" class="logo" target="_blank">LLM4Sec</a>
+    <div class="header-right">
+        <nav class="nav">
+            <a href="#home" data-zh="首页" data-en="Home">首页</a>
+            <a href="#projects" data-zh="项目" data-en="Projects">项目</a>
+            <a href="#contact" data-zh="联系" data-en="Contact">联系</a>
+        </nav>
+        <div class="lang-switcher">
+            <button class="lang-btn" data-lang="zh">中文</button>
+            <button class="lang-btn active" data-lang="en">EN</button>
+        </div>
+    </div>
+</div>
+</header>
+
+<section id="home" class="hero">
+<div class="hero-content">
+    <div class="hero-badge fade-in-up" data-zh="🔒 开源安全工具开发者" data-en="🔒 Open Source Security Tools Developer">🔒 开源安全工具开发者</div>
+    <h1 class="fade-in-up delay-1">
+        <span data-zh="构建更安全的" data-en="Building a More Secure">构建更安全的</span>
+        <span class="hero-gradient-text" data-zh="代码世界" data-en="Code World">代码世界</span>
+    </h1>
+    <p class="fade-in-up delay-2" data-zh="专注于LLM驱动的代码安全分析辅助工具与漏洞挖掘技术，让安全分析更智能、更高效" data-en="Focused on LLM-driven code security analysis tools and vulnerability detection technology, making security analysis smarter and more efficient">
+        专注于LLM驱动的代码安全分析辅助工具与漏洞挖掘技术，让安全分析更智能、更高效
+    </p>
+    <div class="hero-cta fade-in-up delay-3">
+        <a href="#projects" class="btn btn-primary">
+            <span data-zh="探索项目 →" data-en="Explore Projects →">探索项目 →</span>
+        </a>
+        <a href="https://bradmoonuestc.github.io/" class="btn btn-secondary" target="_blank">
+            <span data-zh="个人主页" data-en="Personal Homepage">个人主页</span>
+        </a>
+    </div>
+</div>
+</section>
+
+<section id="projects" class="projects">
+<div class="section-header reveal">
+    <h2 class="section-title" data-zh="核心项目" data-en="Core Projects">核心项目</h2>
+    <p class="section-subtitle" data-zh="利用大语言模型的力量，打造下一代代码安全分析工具" data-en="Leveraging the power of large language models to build next-generation code security analysis tools">
+        利用大语言模型的力量，打造下一代代码安全分析工具
+    </p>
+</div>
+
+<div class="projects-grid">
+    <!-- Finite Monkey Engine -->
+    <div class="project-card reveal delay-1">
+        <div class="project-content">
+            <div class="project-header">
+                <div class="project-icon security">🐒</div>
+                <div class="project-meta">
+                    <h3 class="project-title">Finite Monkey Engine</h3>
+                    <div class="project-type" data-zh="通用代码审计引擎" data-en="Universal Code Audit Engine">通用代码审计引擎</div>
+                </div>
+            </div>
+
+            <p class="project-description" data-zh="基于大语言模型的通用代码审计引擎，采用任务驱动和提示工程方法，通过精心设计的提示引导模型进行漏洞分析。支持多种编程语言，正向着工业级标准迈进，致力于提供更可靠、更精确的代码安全审计能力。" data-en="A universal code audit engine based on large language models, using task-driven and prompt engineering approaches to guide models in vulnerability analysis through carefully designed prompts. Supporting multiple programming languages and advancing towards industrial-grade standards, committed to providing more reliable and accurate code security audit capabilities.">
+                基于大语言模型的通用代码审计引擎，采用任务驱动和提示工程方法，通过精心设计的提示引导模型进行漏洞分析。支持多种编程语言，正向着工业级标准迈进，致力于提供更可靠、更精确的代码安全审计能力。
+            </p>
+
+            <div class="project-features">
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="任务驱动架构" data-en="Task-driven Architecture">任务驱动架构</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="提示工程优化" data-en="Prompt Engineering">提示工程优化</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="多语言支持" data-en="Multi-language Support">多语言支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="多轮迭代确认" data-en="Multi-round Verification">多轮迭代确认</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="可配置扫描模式" data-en="Configurable Scan Modes">可配置扫描模式</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="支持8种编程语言" data-en="8 Programming Languages">支持8种编程语言</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-links">
+                <a href="https://github.com/BradMoonUESTC/finite-monkey-engine" class="btn btn-primary" target="_blank">
+                    <span data-zh="查看源码" data-en="View Source">查看源码</span>
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    <span data-zh="技术文档" data-en="Documentation">技术文档</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- VSCode Plugin -->
+    <div class="project-card reveal delay-2">
+        <div class="project-content">
+            <div class="project-header">
+                <div class="project-icon extension">🔌</div>
+                <div class="project-meta">
+                    <h3 class="project-title">Code Audit Hinter</h3>
+                    <div class="project-type" data-zh="IDE安全插件" data-en="IDE Security Plugin">IDE安全插件</div>
+                </div>
+            </div>
+
+            <p class="project-description" data-zh="智能代码安全提示插件，集成RAG技术为开发者提供实时漏洞检测和修复建议。支持VSCode和Cursor编辑器，将安全分析无缝集成到开发工作流中。" data-en="Intelligent code security hint plugin that integrates RAG technology to provide developers with real-time vulnerability detection and fix suggestions. Supports VSCode and Cursor editors, seamlessly integrating security analysis into development workflows.">
+                智能代码安全提示插件，集成RAG技术为开发者提供实时漏洞检测和修复建议。支持VSCode和Cursor编辑器，将安全分析无缝集成到开发工作流中。
+            </p>
+
+            <div class="project-features">
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="实时安全扫描" data-en="Real-time Security Scan">实时安全扫描</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="智能漏洞提示" data-en="Smart Vulnerability Hints">智能漏洞提示</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="上下文感知分析" data-en="Context-aware Analysis">上下文感知分析</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="自动修复建议" data-en="Auto-fix Suggestions">自动修复建议</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="多编辑器支持" data-en="Multi-editor Support">多编辑器支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="RAG技术驱动" data-en="RAG Technology Powered">RAG技术驱动</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-links">
+                <a href="https://marketplace.visualstudio.com/items?itemName=BradMoonUESTC.vscode-rag-vulnerability-hinter" class="btn btn-primary" target="_blank">
+                    <span data-zh="安装插件" data-en="Install Plugin">安装插件</span>
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    <span data-zh="使用指南" data-en="User Guide">使用指南</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Transaction Analysis -->
+    <div class="project-card reveal delay-3 coming-soon" data-status="开发中">
+        <div class="project-content">
+            <div class="project-header">
+                <div class="project-icon blockchain">⛓️</div>
+                <div class="project-meta">
+                    <h3 class="project-title">Blockchain TX Root Cause Analyzer</h3>
+                    <div class="project-type" data-zh="区块链交易分析工具" data-en="Blockchain Transaction Analysis Tool">区块链交易分析工具</div>
+                </div>
+            </div>
+
+            <p class="project-description" data-zh="基于LLM和多数据源的区块链交易根本原因分析工具。结合强大的反编译能力将字节码还原为真实源代码，快速分析潜在攻击交易的根本原因，为安全研究人员提供深度的链上事件分析能力。" data-en="Blockchain transaction root cause analysis tool based on LLM and multi-data sources. Combines powerful decompilation capabilities to restore bytecode to real source code, quickly analyzing the root cause of potential attack transactions and providing deep on-chain event analysis capabilities for security researchers.">
+                基于LLM和多数据源的区块链交易根本原因分析工具。结合强大的反编译能力将字节码还原为真实源代码，快速分析潜在攻击交易的根本原因，为安全研究人员提供深度的链上事件分析能力。
+            </p>
+
+            <div class="project-features">
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="LLM驱动分析" data-en="LLM-driven Analysis">LLM驱动分析</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="多数据源融合" data-en="Multi-source Data Fusion">多数据源融合</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="强大反编译引擎" data-en="Powerful Decompiler">强大反编译引擎</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="快速根因分析" data-en="Rapid Root Cause Analysis">快速根因分析</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="攻击交易检测" data-en="Attack Transaction Detection">攻击交易检测</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-check">✓</div>
+                        <span data-zh="源代码重构" data-en="Source Code Reconstruction">源代码重构</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-links">
+                <a href="#" class="btn btn-primary" style="opacity: 0.6; cursor: not-allowed; pointer-events: none;">
+                    <span data-zh="敬请期待" data-en="Coming Soon">敬请期待</span>
+                </a>
+                <a href="#" class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed; pointer-events: none;">
+                    <span data-zh="技术预览" data-en="Tech Preview">技术预览</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<footer id="contact" class="footer">
+<div class="footer-content">
+    <div class="social-links">
+        <a href="https://github.com/BradMoonUESTC" class="social-link" target="_blank" title="GitHub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+        <a href="mailto:nerbonic@gmail.com" class="social-link" title="Email">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M0 3v18h24v-18h-24zm21.518 2l-9.518 7.713-9.518-7.713h19.036zm-19.518 14v-11.817l10 8.104 10-8.104v11.817h-20z"/>
+            </svg>
+        </a>
+        <a href="https://x.com/xy9301" class="social-link" target="_blank" title="Twitter/X">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+        </a>
+        <a href="https://bradmoonuestc.github.io/" class="social-link" target="_blank" title="个人主页">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22c-5.514 0-10-4.486-10-10s4.486-10 10-10 10 4.486 10 10-4.486 10-10 10zm-1-5.5v-5.5c0-.276.224-.5.5-.5s.5.224.5.5v5.5c0 .276-.224.5-.5.5s-.5-.224-.5-.5zm0-7v-1c0-.276.224-.5.5-.5s.5.224.5.5v1c0 .276-.224.5-.5.5s-.5-.224-.5-.5z"/>
+            </svg>
+        </a>
+    </div>
+    <p class="footer-text" data-zh="© 2025 LLM4Sec. 专注于LLM驱动的安全工具开发与研究." data-en="© 2025 LLM4Sec. Focused on LLM-driven security tools development and research.">
+        © 2025 LLM4Sec. 专注于LLM驱动的安全工具开发与研究.
+    </p>
+</div>
+</footer>
+
+<script>
+// Language switching functionality
+let currentLang = 'en';
+
+function switchLanguage(lang) {
+    currentLang = lang;
+    
+    // Update language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    
+    // Update all translatable elements
+    document.querySelectorAll('[data-zh][data-en]').forEach(element => {
+        const text = element.getAttribute(`data-${lang}`);
+        if (text) {
+            element.textContent = text;
+        }
+    });
+
+    // Update coming soon status
+    document.querySelectorAll('.coming-soon').forEach(element => {
+        element.setAttribute('data-status', lang === 'zh' ? '开发中' : 'In Development');
+    });
+}
+
+// Language button event listeners
+document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        switchLanguage(btn.dataset.lang);
+    });
+});
+
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            const targetPosition = target.offsetTop - headerHeight;
+            
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Reveal animations on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+        }
+    });
+}, observerOptions);
+
+// Observe all reveal elements
+document.querySelectorAll('.reveal').forEach(el => {
+    observer.observe(el);
+});
+
+// Dynamic header background on scroll
+window.addEventListener('scroll', () => {
+    const header = document.querySelector('.header');
+    const hero = document.querySelector('.hero');
+    const scrolled = window.pageYOffset;
+    const heroHeight = hero.offsetHeight;
+    
+    // Header background
+    if (scrolled > 100) {
+        header.style.background = 'rgba(10, 10, 10, 0.98)';
+    } else {
+        header.style.background = 'rgba(10, 10, 10, 0.95)';
+    }
+    
+    // Hero fade out effect
+    const fadeStart = heroHeight * 0.3; // Start fading at 30% of hero height (更早开始)
+    const fadeEnd = heroHeight * 0.7;   // Complete fade at 70% of hero height (更早结束)
+    
+    if (scrolled <= fadeStart) {
+        hero.style.opacity = '1';
+        hero.style.transform = 'translateY(0)';
+    } else if (scrolled >= fadeEnd) {
+        hero.style.opacity = '0';
+        hero.style.transform = 'translateY(-50px)';
+    } else {
+        // Calculate fade progress
+        const fadeProgress = (scrolled - fadeStart) / (fadeEnd - fadeStart);
+        const opacity = 1 - fadeProgress;
+        const translateY = -50 * fadeProgress;
+        
+        hero.style.opacity = opacity.toString();
+        hero.style.transform = `translateY(${translateY}px)`;
+    }
+});
+
+// Initialize with English on page load
+document.addEventListener('DOMContentLoaded', function() {
+    switchLanguage('en');
+});
+
+</script>
+</body>
+</html>
